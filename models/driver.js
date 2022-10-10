@@ -2,6 +2,7 @@
 const {
   Model
 } = require('sequelize');
+const {hashPassword} = require('../helpers/bcrypt');
 module.exports = (sequelize, DataTypes) => {
   class Driver extends Model {
     /**
@@ -15,11 +16,47 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Driver.init({
-    fullName: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password: DataTypes.STRING,
-    carLicenseNumber: DataTypes.STRING,
-    carType: DataTypes.STRING,
+    fullName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: { msg: "Name is required" },
+        notEmpty: { msg: "Name is required" },
+      }
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        notNull: { msg: "Email is required" },
+        notEmpty: { msg: "Email is required" },
+      }
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: { msg: "Password is required" },
+        notEmpty: { msg: "Password is required" },
+      }
+    },
+    carLicenseNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: { msg: "Car license number is required" },
+        notEmpty: { msg: "Car license number is required" },
+      }
+    },
+    carType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: { msg: "Car type is required" },
+        notEmpty: { msg: "Car type is required" },
+      }
+    },
     imgUrl: DataTypes.STRING,
     carImgUrl: DataTypes.STRING,
     driverStatus: DataTypes.STRING,
@@ -29,5 +66,8 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Driver',
   });
+  Driver.beforeCreate((driver, options) => {
+    driver.password = hashPassword(driver.password)
+  })
   return Driver;
 };
