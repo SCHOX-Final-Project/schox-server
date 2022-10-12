@@ -7,11 +7,9 @@ class DriverController {
     try {
       const { email, password } = req.body;
       const findDriver = await Driver.findOne({ where: { email } });
-      if (!findDriver) throw { message: "invalid_email/password" };
+      if (!findDriver) throw { name: "invalid_email/password" };
       const compare = comparePassword(password, findDriver.password);
-      if (!compare) throw { message: "invalid_email/password" };
-      // const payload = { id: findDriver.id }
-      // const access_token = signToken(payload)
+      if (!compare) throw { name: "invalid_email/password" };
       res.status(200).json(findDriver);
     } catch (err) {
       next(err);
@@ -23,7 +21,7 @@ class DriverController {
       const { driverId } = req.params;
       const { balance } = req.body;
       const driver = await Driver.findByPk(driverId);
-      if (!driver) throw { message: "notfound" };
+      if (!driver) throw { name: "Drivers not found!" };
       await Driver.update({ balance }, { where: { id: driverId } });
       res.status(200).json({
         message: "success update driver balance with driver id: " + driverId,
@@ -35,7 +33,7 @@ class DriverController {
 
   static async getDrivers(req, res, next) {
     try {
-      const drivers = await Driver.findAll();
+      const drivers = await Driver.findAll({ where: { driverStatus: "Available" } });
       res.status(200).json(drivers);
     } catch (err) {
       next(err);
@@ -46,7 +44,7 @@ class DriverController {
     try {
       const { id } = req.params;
       const driver = await Driver.findByPk(id);
-      if (!driver) throw { message: "notfound" };
+      if (!driver) throw { name: "Drivers not found!" };
       res.status(200).json(driver);
     } catch (err) {
       next(err);
@@ -58,34 +56,43 @@ class DriverController {
       const { id } = req.params;
       const { driverStatus } = req.body;
       const findDriver = await Driver.findOne({ where: { id } });
-      if (!findDriver) throw { message: "Drivers not found!" };
+      if (!findDriver) throw { name: "Drivers not found!" };
       await Driver.update({ driverStatus }, { where: { id } });
       res.status(200).json({ message: "success update status driver" });
     } catch (err) {
       next(err);
     }
   }
-
+    
   static async getDetailChat(req, res, next) {
     try {
-      const { id } = req.params;
-      console.log(id);
-      const detailDriver = await Driver.findOne({
-        where: { id },
-        include: [
-          {
-            model: Subscription,
-            include: [User],
-          },
-        ],
-      });
-      if (!detailDriver) throw { message: "notfound" };
-      res.status(200).json(detailDriver);
+        const { id } = req.params
+        const detailDriver = await Driver.findOne({
+            where: { id },
+            include: [{
+                model: Subscription,
+                include: [User]
+            }]
+        })
+        if (!detailDriver) throw { name: "Drivers not found!" }
+        res.status(200).json(detailDriver);
     } catch (err) {
-      console.log(err);
       next(err);
     }
   }
+
+  static async checkSubscription(req, res, next) {
+    try {
+      const { driverId } =  req.params
+      const checkSubs = await Subscription.findOne({ where: { DriverId: driverId } })
+      console.log(checkSubs)
+      if (!checkSubs) throw { name: "NOT_BOOKED_YET" }
+      else res.status(200).json({ message: "BOOKED", endDate: checkSubs.endDate })
+    } catch (err) {
+      next(err)
+    }
+  }
+
 }
 
 module.exports = {
