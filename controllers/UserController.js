@@ -42,7 +42,7 @@ class UserController {
   }
   static async login(req, res, next) {
     try {
-      console.log();
+      console.log('masuk');
       const { email, password } = req.body;
       const findUser = await User.findOne({ where: { email } });
       if (!findUser) throw { name: "invalid_email/pass" };
@@ -54,6 +54,7 @@ class UserController {
 
       res.status(200).json({ access_token: access_token, id: findUser.id });
     } catch (err) {
+      console.log(err)
       next(err);
     }
   }
